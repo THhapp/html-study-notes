@@ -1,4 +1,4 @@
 interface:
   display_name: "图表与交互可视化"
-  short_description: "将指定知识、数据与过程转成清晰的静态图、联动图解和交互演示"
-  default_prompt: "使用 $html-study-notes，为指定内容设计合适的图表或交互可视化，让结构、对应与变化直观可见。"
+  short_description: "为指定知识、数据与过程制作可视化讲解、交互例子和图表演示"
+  default_prompt: "使用 $html-study-notes，为指定内容制作合适的可视化讲解或例子，让结构、对应与变化直观可见。"
