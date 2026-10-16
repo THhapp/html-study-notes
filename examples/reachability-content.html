@@ -1,0 +1,146 @@
+<div class="hn-page">
+<main class="hn-main">
+<header class="hn-header">
+  <p class="hn-eyebrow">离散结构</p>
+  <h1>有向图与可达性</h1>
+  <p class="hn-lead">从边的方向、邻接矩阵到逐步搜索，区分“直接相邻”和“经过若干条边能够到达”。本篇限定有限、无平行边的有向图。</p>
+</header>
+
+<section id="graph-definition">
+<h2>有向图</h2>
+<div class="hn-block">
+ <span class="hn-label">定义</span>
+ <p>有向图记为 <strong>G = (V, E)</strong>。V 是顶点的有限集合；E 是 V × V 的一个子集，元素 (u, v) 表示一条从 u 指向 v 的有向边。边的起点和终点有顺序，(u, v) 与 (v, u) 是不同的边。</p>
+</div>
+<div class="hn-formula">
+ <math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="E 是 V 与 V 的笛卡尔积的子集"><mi>E</mi><mo>⊆</mo><mi>V</mi><mo>×</mo><mi>V</mi></math>
+</div>
+<p>V × V 是所有顶点有序对组成的集合；E 从中选出实际存在的边。该集合模型不区分同一有序对的多条平行边，但可以包含形如 (u, u) 的自环。下面的例子没有自环。</p>
+<p>取 V = {A, B, C, D}，E = {(A, B), (A, C), (B, D)}。这四个字母仅是顶点标识，没有大小、先后或业务含义。</p>
+
+<figure class="hn-figure" data-hn-linked id="representations">
+ <figcaption>图 1　同一有向图的三种表示</figcaption>
+ <p class="hn-small">箭头指向边的终点。选择节点后，矩阵对应的起点行与可达数量同步标记；再次选择可取消。</p>
+ <div class="hn-graph" aria-label="四个顶点，边为 A 到 B、A 到 C、B 到 D">
+  <svg viewBox="0 0 1000 500" preserveAspectRatio="none" role="img" aria-labelledby="structure-title structure-desc">
+   <title id="structure-title">有向图结构</title>
+   <desc id="structure-desc">A 指向 B 和 C；B 指向 D；C 和 D 没有出边。</desc>
+   <defs><marker id="structure-arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="7" markerHeight="7" orient="auto"><path d="M 1 1 L 11 6 L 1 11 Z" fill="var(--hn-muted)"/></marker></defs>
+   <path class="hn-edge" data-hn-edge-from="A" data-hn-edge-to="B" d="M 200 218 L 400 139" marker-end="url(#structure-arrow)"/>
+   <path class="hn-edge" data-hn-edge-from="A" data-hn-edge-to="C" d="M 200 282 L 400 361" marker-end="url(#structure-arrow)"/>
+   <path class="hn-edge" data-hn-edge-from="B" data-hn-edge-to="D" d="M 580 100 L 780 100" marker-end="url(#structure-arrow)"/>
+  </svg>
+  <button class="hn-node hn-node-a" data-hn-select="A" data-hn-key="A" aria-label="选择顶点 A" aria-pressed="false" disabled>A</button>
+  <button class="hn-node hn-node-b" data-hn-select="B" data-hn-key="B" aria-label="选择顶点 B" aria-pressed="false" disabled>B</button>
+  <button class="hn-node hn-node-c" data-hn-select="C" data-hn-key="C" aria-label="选择顶点 C" aria-pressed="false" disabled>C</button>
+  <button class="hn-node hn-node-d" data-hn-select="D" data-hn-key="D" aria-label="选择顶点 D" aria-pressed="false" disabled>D</button>
+ </div>
+ <div class="hn-views">
+  <div class="hn-scroll" tabindex="0" role="region" aria-label="邻接矩阵，行是起点，列是终点">
+   <table class="hn-matrix">
+    <caption>邻接矩阵：行 → 列</caption>
+    <thead><tr><th scope="col">起点＼终点</th><th scope="col">A</th><th scope="col">B</th><th scope="col">C</th><th scope="col">D</th></tr></thead>
+    <tbody>
+     <tr data-hn-key="A"><th scope="row">A</th><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+     <tr data-hn-key="B"><th scope="row">B</th><td>0</td><td>0</td><td>0</td><td>1</td></tr>
+     <tr data-hn-key="C"><th scope="row">C</th><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+     <tr data-hn-key="D"><th scope="row">D</th><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+    </tbody>
+   </table>
+  </div>
+  <div>
+   <p class="hn-small">每个起点的可达顶点数（包括自身）</p>
+   <div class="hn-bars" role="list" aria-label="可达顶点数，条长共同以 4 为满刻度">
+    <div class="hn-bar-row" data-hn-key="A" role="listitem"><strong>A</strong><div class="hn-bar-track" aria-hidden="true"><div class="hn-bar-fill" style="width:100%"></div></div><span>4 个</span></div>
+    <div class="hn-bar-row" data-hn-key="B" role="listitem"><strong>B</strong><div class="hn-bar-track" aria-hidden="true"><div class="hn-bar-fill" style="width:50%"></div></div><span>2 个</span></div>
+    <div class="hn-bar-row" data-hn-key="C" role="listitem"><strong>C</strong><div class="hn-bar-track" aria-hidden="true"><div class="hn-bar-fill" style="width:25%"></div></div><span>1 个</span></div>
+    <div class="hn-bar-row" data-hn-key="D" role="listitem"><strong>D</strong><div class="hn-bar-track" aria-hidden="true"><div class="hn-bar-fill" style="width:25%"></div></div><span>1 个</span></div>
+   </div>
+  </div>
+ </div>
+ <p class="hn-status" data-hn-linked-status aria-live="polite">显示全部对象；选择节点可定位对应表示。</p>
+</figure>
+<p><strong>邻接矩阵</strong>将顶点顺序固定为 A、B、C、D，用行表示起点、列表示终点；位置 (u, v) 为 1 当且仅当 (u, v) ∈ E，否则为 0。因此 A 行 D 列是 0，只说明没有边 A → D，尚不能据此判断能否经过其他顶点到达 D。</p>
+</section>
+
+<section id="reachability">
+<h2>路径与可达性</h2>
+<div class="hn-block">
+ <span class="hn-label">定义</span>
+ <p>本文将顶点序列 v₀, v₁, …, vₖ 称为从 v₀ 到 vₖ 的有向路径，当每一对连续顶点都满足 (vᵢ, vᵢ₊₁) ∈ E。路径长度 k 是经过的边数。这里允许重复顶点；不重复顶点的路径另称简单路径。不同教材可能将允许重复的情况称为“途径”，阅读时须核对这一约定。</p>
+ <p>如果存在从 u 到 v 的有向路径，就称 <strong>v 从 u 可达</strong>。本篇允许长度为 0 的路径：只包含一个顶点，因此每个顶点从自身可达。</p>
+</div>
+<p>在例图中，A → B → D 是长度为 2 的路径，所以 D 从 A 可达；A → C 的长度为 1。C 没有出边，但仍可用长度为 0 的路径到达自身。D 没有出边，不能反向沿 B → D 回到 B。</p>
+<div class="hn-block hn-key">
+ <span class="hn-label">重点</span>
+ <p>直接相邻只考察一条边，可达性考察是否存在一整条路径。邻接矩阵的 0 不等于不可达；有向可达也不要求反向可达。</p>
+</div>
+<div class="hn-scroll" tabindex="0" role="region" aria-label="可达集合及路径见证">
+ <table>
+  <caption>表 1　按长度为 0 的路径也计入的约定</caption>
+  <thead><tr><th scope="col">起点</th><th scope="col">可达集合</th><th scope="col">路径见证</th></tr></thead>
+  <tbody><tr><th scope="row">A</th><td>{A, B, C, D}</td><td>A；A → B；A → C；A → B → D</td></tr><tr><th scope="row">B</th><td>{B, D}</td><td>B；B → D</td></tr><tr><th scope="row">C</th><td>{C}</td><td>C</td></tr><tr><th scope="row">D</th><td>{D}</td><td>D</td></tr></tbody>
+ </table>
+</div>
+<div class="hn-block hn-caution">
+ <span class="hn-label">注意</span>
+ <p>若问题限定路径必须至少含一条边，自身不再自动计入可达集合；只有存在回到自身的有向闭合路径时才计入。比较结果前，应先统一路径长度的约定。图 1 的数量条与表 1 始终采用本篇的零长度约定。</p>
+</div>
+</section>
+
+<section id="search">
+<h2>按队列搜索</h2>
+<p>要找出从给定起点 s 可达的全部顶点，可以沿出边逐步发现新顶点。<strong>广度优先搜索</strong>使用先进先出的队列管理“已经发现、尚未展开”的顶点；发现集合记录已经找到的顶点，避免重复入队。展开一个顶点，是检查它的每一条出边，并将尚未发现的终点加入发现集合和队尾。</p>
+<p>初始化时将 s 加入发现集合和队列；每一步取出队首并展开。当队列为空时停止，此时发现集合就是从 s 可达的顶点集合。顶点应在<strong>入队时</strong>标记为已发现，不能等到出队才标记，否则多个前驱可能让同一顶点重复入队。</p>
+<pre aria-label="队列搜索伪代码">已发现 ← {s}
+队列 ← [s]
+当队列非空：
+    u ← 移出队首
+    按约定顺序检查 u 的每个出边终点 v：
+        若 v 不在已发现中：
+            将 v 加入已发现
+            将 v 加入队尾</pre>
+<p>下面从 A 开始，检查出边时按字母顺序处理终点。“一步”指完整展开一个顶点；初始化单列一帧。队列左端是队首，发现集合没有顺序，展示时按字母排列。</p>
+
+<figure class="hn-figure" id="bfs-example" data-hn-sequence>
+ <figcaption>图 2　从 A 开始的搜索过程</figcaption>
+ <div class="hn-legend"><span><i class="hn-dot" style="color:var(--hn-success)"></i>边框：已发现</span><span><i class="hn-dot" style="color:var(--hn-current)"></i>当前：本步展开</span></div>
+ <div class="hn-interactive-only">
+  <div class="hn-step-track" aria-hidden="true"><span data-bfs-step="0">初始</span><span data-bfs-step="1">展开 A</span><span data-bfs-step="2">展开 B</span><span data-bfs-step="3">展开 C</span><span data-bfs-step="4">展开 D</span></div>
+  <div class="hn-state-grid">
+   <div class="hn-state"><h3>已发现的顶点</h3><div data-bfs-visited><span class="hn-chip hn-discovered">A</span></div></div>
+   <div class="hn-state"><h3>待展开队列（左侧先出）</h3><div data-bfs-queue><span class="hn-chip">A</span></div></div>
+  </div>
+  <p class="hn-status" data-hn-status aria-live="polite">1 / 5 · 初始化：发现 A，将 A 入队。</p>
+  <p data-hn-bind="explanation">尚未展开顶点，队列只包含起点。</p>
+ </div>
+ <div class="hn-controls" data-hn-controls hidden>
+  <button type="button" data-hn-action="prev">上一步</button>
+  <button type="button" data-hn-action="next">下一步</button>
+  <button type="button" data-hn-action="play" aria-pressed="false">播放</button>
+  <button type="button" data-hn-action="reset">重置</button>
+  <label>进度<input type="range" data-hn-range min="0" max="4" value="0" aria-label="搜索步骤"></label>
+ </div>
+ <script type="application/json" data-hn-frames>[
+  {"label":"初始化：发现 A，将 A 入队。","visited":["A"],"queue":["A"],"current":"","explanation":"尚未展开顶点，队列只包含起点。"},
+  {"label":"展开 A：发现 B、C。","visited":["A","B","C"],"queue":["B","C"],"current":"A","explanation":"A 出队，沿 A → B 与 A → C 发现两个新顶点，并按 B、C 顺序入队。"},
+  {"label":"展开 B：发现 D。","visited":["A","B","C","D"],"queue":["C","D"],"current":"B","explanation":"B 出队，沿 B → D 发现 D。C 原先已在队首，D 加入队尾。"},
+  {"label":"展开 C：没有新顶点。","visited":["A","B","C","D"],"queue":["D"],"current":"C","explanation":"C 出队，没有出边。发现集合不变，队列还剩 D。"},
+  {"label":"展开 D：队列为空，搜索结束。","visited":["A","B","C","D"],"queue":[],"current":"D","explanation":"D 出队且没有出边。队列为空，最终可达集合为 {A, B, C, D}。"}
+ ]</script>
+ <div class="hn-static hn-scroll" tabindex="0" role="region" aria-label="完整搜索过程表">
+  <table id="bfs-static-table">
+   <caption>表 2　全部合法步骤（不依赖播放）</caption>
+   <thead><tr><th scope="col">操作</th><th scope="col">新发现</th><th scope="col">发现集合</th><th scope="col">操作后队列</th></tr></thead>
+   <tbody><tr><th scope="row">初始化</th><td>A</td><td>{A}</td><td>[A]</td></tr><tr><th scope="row">展开 A</th><td>B、C</td><td>{A, B, C}</td><td>[B, C]</td></tr><tr><th scope="row">展开 B</th><td>D</td><td>{A, B, C, D}</td><td>[C, D]</td></tr><tr><th scope="row">展开 C</th><td>无</td><td>{A, B, C, D}</td><td>[D]</td></tr><tr><th scope="row">展开 D</th><td>无</td><td>{A, B, C, D}</td><td>[]</td></tr></tbody>
+  </table>
+ </div>
+</figure>
+<div class="hn-block hn-key"><span class="hn-label">重点</span><p>发现集合与队列含义不同。顶点出队以后仍属于发现集合；队列为空表示没有待展开的顶点，并不表示发现集合为空。例子在展开 B 后已发现全部顶点，但仍须处理队列中的 C、D 才按本算法停止。</p></div>
+<details class="hn-extra" open><summary>边界情况</summary><p>起点没有出边时，初始化后只需将起点出队，最终集合只有自身。图中有环时，入队前检查发现集合可以阻止重复入队。改变同层顶点的检查顺序可能改变队列次序，但不会改变最终可达集合。</p></details>
+</section>
+
+<footer class="hn-sources" id="sources"><h2>数据与约定</h2><p>顶点 A、B、C、D 及边集合为构造数据。讨论范围为有限、无平行边的有向图；路径允许重复顶点及长度为 0 的情况。各起点的可达数量均将自身计入，搜索按字母顺序检查出边终点。</p></footer>
+</main>
+<nav class="hn-toc" aria-label="篇内目录"><details open><summary>篇内目录</summary><ol><li><a href="#graph-definition">有向图</a></li><li><a href="#reachability">路径与可达性</a></li><li><a href="#search">按队列搜索</a></li><li><a href="#sources">数据与约定</a></li></ol></details></nav>
+</div>

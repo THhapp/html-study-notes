@@ -1,0 +1,4 @@
+interface:
+  display_name: "HTML 学习笔记"
+  short_description: "将学习材料整理为定义准确、编排统一、图解丰富的独立 HTML 笔记"
+  default_prompt: "使用 $html-study-notes，将提供的材料整理成可独立阅读的 HTML 学习笔记，保留准确完整的正文并配合交互图解。"

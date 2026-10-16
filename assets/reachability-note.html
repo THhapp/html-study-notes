@@ -1,0 +1,532 @@
+<!doctype html>
+<!--
+Reusable shell, base styles and controls: Copyright (c) 2026 html-study-notes contributors.
+The following MIT notice covers that reusable implementation; note content and
+separately attributed materials retain their own applicable rights.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>有向图与可达性</title>
+<style>
+/* Original html-study-notes styles. MIT License. */
+:root {
+  color-scheme: light;
+  --hn-bg:#ffffff; --hn-paper:#ffffff; --hn-ink:#242d3a; --hn-muted:#556273;
+  --hn-line:#cbd2db; --hn-soft:#eef1f5; --hn-blue:#245d9c; --hn-purple:#7950a8;
+  --hn-teal:#15766e; --hn-amber:#8c570b; --hn-orange:#a84818; --hn-red:#ae344e;
+  --hn-def:#edf4fc; --hn-key:#fff4d9; --hn-caution:#fff0e6; --hn-question:#fff0f3;
+  --hn-current:#b06a0d; --hn-success:#28764f;
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--hn-bg); color:var(--hn-ink); font:16px/1.9 system-ui,"Microsoft YaHei",sans-serif; }
+button,input { font:inherit; }
+button { color:var(--hn-ink); background:var(--hn-paper); border:1px solid var(--hn-line); border-radius:7px; min-height:36px; padding:4px 12px; cursor:pointer; }
+button:hover { border-color:var(--hn-blue); }
+button:disabled { opacity:.45; cursor:default; }
+button:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible,[tabindex]:focus-visible { outline:3px solid var(--hn-blue); outline-offset:3px; }
+a { color:var(--hn-blue); text-underline-offset:3px; }
+[hidden] { display:none!important; }
+.hn-page { max-width:1140px; margin:0 auto; display:grid; grid-template-columns:minmax(0,860px) 174px; gap:40px; padding:44px 28px 80px; }
+.hn-main { min-width:0; }
+.hn-header { border-bottom:1px solid var(--hn-line); padding-bottom:25px; margin-bottom:34px; }
+.hn-eyebrow { color:var(--hn-muted); font-size:13px; letter-spacing:.1em; margin:0; }
+h1 { font-size:32px; line-height:1.4; margin:8px 0 14px; letter-spacing:.015em; }
+h2 { font-size:23px; line-height:1.5; margin:0 0 22px; scroll-margin-top:20px; }
+.hn-main>section { border-top:1px solid var(--hn-line); margin-top:36px; padding-top:28px; }
+.hn-main>section:first-of-type { border-top:0; margin-top:0; padding-top:0; }
+h3 { font-size:19px; line-height:1.6; margin:28px 0 14px; }
+p { margin:14px 0; }
+.hn-lead { margin:0; color:var(--hn-muted); }
+.hn-toc { position:sticky; top:24px; align-self:start; font-size:14px; padding:12px 0 12px 16px; border-left:1px solid var(--hn-line); }
+.hn-toc summary { font-weight:650; }
+.hn-toc ol { padding-left:20px; margin:12px 0 0; }
+.hn-toc li { padding:5px 0; }
+.hn-toc a { color:var(--hn-muted); text-decoration:none; }
+.hn-block { border-left:3px solid var(--hn-blue); padding:2px 0 2px 18px; margin:22px 0; background:transparent; }
+.hn-block p:first-of-type { margin-top:7px; }
+.hn-block p:last-child { margin-bottom:0; }
+.hn-label { display:block; font-size:13px; font-weight:700; color:var(--hn-blue); letter-spacing:.06em; }
+.hn-key { border-color:var(--hn-amber); background:var(--hn-key); padding:14px 18px; }
+.hn-key .hn-label { color:var(--hn-amber); }
+.hn-caution { border-color:var(--hn-orange); background:var(--hn-caution); padding:14px 18px; }
+.hn-caution .hn-label { color:var(--hn-orange); }
+.hn-question { border-color:var(--hn-red); background:var(--hn-question); padding:14px 18px; }
+.hn-question .hn-label { color:var(--hn-red); }
+.hn-formula { padding:18px; background:var(--hn-soft); text-align:center; border-radius:8px; margin:20px 0; overflow-x:auto; }
+math { font-size:1.18em; }
+.hn-figure { margin:26px 0; padding:20px 0 0; border-top:2px solid var(--hn-line); background:var(--hn-paper); }
+figcaption { font-size:15px; font-weight:650; margin-bottom:16px; }
+.hn-small { font-size:14px; color:var(--hn-muted); }
+.hn-scroll { max-width:100%; overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:14px; line-height:1.65; }
+caption { text-align:left; color:var(--hn-muted); font-size:13px; margin:10px 0; }
+th,td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--hn-line); vertical-align:top; }
+thead th { background:var(--hn-soft); }
+tbody th { font-weight:650; }
+.hn-controls { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:16px 0; }
+.hn-controls label { display:flex; align-items:center; gap:8px; flex:1 1 190px; white-space:nowrap; }
+input[type=range] { flex:1; min-width:90px; width:0; accent-color:var(--hn-blue); }
+.hn-status { min-height:1.9em; font-size:14px; margin:12px 0; }
+.hn-chip { display:inline-flex; border:1px solid var(--hn-line); border-radius:6px; padding:2px 10px; margin:3px; background:var(--hn-paper); font-weight:650; }
+.hn-state-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.hn-state { padding:12px 16px; background:var(--hn-soft); border-radius:8px; }
+.hn-state h3 { margin:0 0 8px; font-size:14px; }
+.hn-static { margin-top:24px; }
+details.hn-extra { margin:20px 0; padding:12px 16px; border:1px solid var(--hn-line); border-radius:8px; }
+.hn-extra summary { cursor:pointer; font-weight:650; }
+.hn-sources { margin-top:44px; padding-top:20px; border-top:1px solid var(--hn-line); font-size:14px; color:var(--hn-muted); overflow-wrap:anywhere; }
+.hn-sources li { margin:8px 0; }
+pre { padding:16px; background:var(--hn-soft); overflow-x:auto; font:14px/1.8 ui-monospace,Consolas,monospace; border-radius:8px; }
+code { font-family:ui-monospace,Consolas,monospace; }
+[data-hn-key] { transition:background-color .15s,outline-color .15s; }
+[data-hn-key].hn-selected { outline:2px solid var(--hn-blue); outline-offset:-2px; background:var(--hn-def); }
+[data-hn-select][aria-pressed=true] { box-shadow:0 0 0 3px var(--hn-blue); }
+.hn-graph { position:relative; width:100%; aspect-ratio:2/1; min-height:180px; margin:10px 0 20px; }
+.hn-graph svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+.hn-edge { stroke:var(--hn-muted); stroke-width:3; fill:none; }
+.hn-edge.hn-selected { stroke:var(--hn-blue); stroke-width:6; }
+.hn-node { position:absolute; transform:translate(-50%,-50%); width:44px; height:44px; padding:0; border-width:2px; font-weight:750; background:var(--hn-paper); }
+.hn-node-a { left:12%; top:50%; border-color:var(--hn-blue); }
+.hn-node-b { left:50%; top:20%; border-color:var(--hn-purple); }
+.hn-node-c { left:50%; top:80%; border-color:var(--hn-teal); }
+.hn-node-d { left:88%; top:20%; border-color:var(--hn-amber); }
+.hn-views { display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start; }
+.hn-matrix td,.hn-matrix th { text-align:center; padding:7px 9px; }
+.hn-bars { display:grid; gap:12px; padding-top:10px; }
+.hn-bar-row { display:grid; grid-template-columns:36px 1fr 38px; gap:10px; align-items:center; font-size:14px; border-radius:5px; padding:3px; }
+.hn-bar-track { background:var(--hn-soft); border-radius:4px; height:14px; }
+.hn-bar-fill { height:100%; background:var(--hn-blue); border-radius:4px; }
+.hn-legend { display:flex; gap:14px; flex-wrap:wrap; font-size:13px; color:var(--hn-muted); }
+.hn-legend span { display:inline-flex; align-items:center; gap:6px; }
+.hn-dot { display:inline-block; width:11px; height:11px; border:2px solid currentColor; border-radius:50%; }
+.hn-discovered { border:2px solid var(--hn-success); }
+.hn-current { background:var(--hn-key); border:2px solid var(--hn-current); }
+.hn-step-track { display:flex; gap:8px; align-items:center; margin:18px 0; }
+.hn-step-track span { flex:1; border-bottom:4px solid var(--hn-line); padding-bottom:4px; text-align:center; font-size:13px; }
+.hn-step-track span.hn-active { border-color:var(--hn-current); font-weight:750; }
+.hn-wire-board { position:relative; isolation:isolate; }
+.hn-wire-layer { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible; z-index:2; }
+.hn-wire { stroke:var(--hn-wire-color,var(--hn-blue)); stroke-width:2; fill:none; }
+.hn-wire.hn-faded { opacity:.12; }
+.hn-wire.hn-traced { stroke-width:3; }
+.hn-copy-map { min-width:470px; display:grid; grid-template-columns:minmax(160px,1fr) minmax(190px,1.25fr); column-gap:100px; align-items:center; padding:20px 8px; }
+.hn-fact { padding:18px; border:1px solid var(--hn-purple); border-left:3px solid var(--hn-purple); border-radius:5px; background:white; }
+.hn-fact strong { display:block; margin:7px 0; }
+.hn-fact.is-lost { border-style:dashed; }
+.hn-fact.is-lost strong { text-decoration:line-through; text-decoration-color:var(--hn-red); }
+.hn-copy-targets { display:grid; gap:14px; min-height:110px; }
+.hn-copy-target { background:white; text-align:left; padding:10px 14px; border-left:3px solid var(--hn-purple); }
+.hn-copy-target strong,.hn-copy-target small { display:block; }
+.hn-copy-target small { font-size:12px; color:var(--hn-muted); }
+.hn-changed { background:var(--hn-key); }
+.hn-conflict { background:var(--hn-question); text-decoration:underline dotted var(--hn-red); text-underline-offset:4px; }
+.hn-good { border-color:var(--hn-success); }
+.hn-row-label { font-size:11px; color:var(--hn-muted); display:block; }
+.hn-case-context { font-size:14px; border-left:2px solid var(--hn-line); padding:3px 0 3px 14px; }
+.hn-meter { display:flex; justify-content:space-between; gap:16px; border-bottom:1px solid var(--hn-line); padding:8px 0; font-size:13px; color:var(--hn-muted); }
+.hn-outcomes { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:20px 0; }
+.hn-outcome { border:1px solid var(--hn-line); padding:14px; border-radius:4px; }
+.hn-outcome h3 { margin:0 0 8px; font-size:15px; }
+.hn-outcome p { font-size:14px; }
+.hn-flow-map { min-width:650px; padding:10px 8px; }
+.hn-flow-source { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:9px; padding-bottom:105px; }
+.hn-attribute { background:white; min-width:0; padding:8px 4px; font-size:13px; border-radius:4px; }
+.hn-attribute small { display:block; color:var(--hn-muted); font-size:11px; }
+.hn-attribute-dots { display:flex; justify-content:center; gap:3px; padding-top:4px; }
+.hn-attribute-dots i { width:5px; height:5px; border-radius:50%; background:var(--hn-dot); }
+.hn-projections { display:grid; grid-template-columns:1fr 1fr 1.35fr; gap:14px; align-items:start; }
+.hn-projection { min-width:0; border-top:3px solid var(--hn-series,var(--hn-blue)); padding-top:10px; background:white; }
+.hn-projection-title { font-size:14px; font-weight:650; margin:0 0 8px; }
+.hn-projection table { font-size:12px; }
+.hn-projection caption { caption-side:bottom; font-size:12px; line-height:1.8; padding-top:10px; }
+.hn-projection td,.hn-projection th { padding:7px 5px; }
+.hn-projection th { background:white; }
+.hn-projection .hn-attribute { font-size:12px; padding:5px 3px; min-height:32px; width:100%; }
+.hn-projection.is-filtered { opacity:.45; }
+.hn-duplicate { background:repeating-linear-gradient(135deg,#fff5e2,#fff5e2 8px,#fffaf1 8px,#fffaf1 16px); }
+.hn-diagram-legend { display:flex; flex-wrap:wrap; gap:16px; margin:14px 0; color:var(--hn-muted); font-size:13px; }
+.hn-diagram-legend span { border-left:3px solid var(--hn-series); padding-left:7px; }
+.hn-reading-table { min-width:580px; }
+@media(max-width:1050px) {
+ .hn-page { display:flex; flex-direction:column; gap:18px; padding:26px 24px 60px; max-width:860px; }
+ .hn-toc { order:-1; position:static; width:100%; padding:8px 12px; border:1px solid var(--hn-line); border-radius:7px; }
+ .hn-toc ol { display:flex; flex-wrap:wrap; gap:4px 28px; }
+}
+@media(max-width:600px) {
+ body { font-size:16px; } .hn-page { padding:18px 14px 40px; } h1 { font-size:28px; } h2 { font-size:22px; }
+ .hn-views,.hn-state-grid,.hn-outcomes { grid-template-columns:1fr; }
+ .hn-block { padding-left:14px; } .hn-toc ol { display:block; } .hn-controls button { flex-grow:1; }
+}
+@media(pointer:coarse) { button { min-height:44px; } }
+@media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+@media print {
+ :root { color-scheme:light; --hn-bg:white; --hn-paper:white; --hn-ink:#111; --hn-muted:#333; --hn-line:#999; --hn-soft:#f1f1f1; --hn-blue:#245d9c; --hn-def:#f5f5f5; --hn-key:#f5f5f5; --hn-caution:#f5f5f5; --hn-question:#f5f5f5; }
+ body { font-size:11pt; line-height:1.65; background:white; } .hn-page { display:block; max-width:none; padding:0; }
+ .hn-toc,.hn-controls,.hn-interactive-only { display:none!important; } h2,h3,figcaption { break-after:avoid; }
+ .hn-figure { padding-top:12px; } .hn-scroll { overflow:visible; } table { font-size:10pt; }
+ .hn-wire-layer { display:none; } .hn-copy-map { min-width:0; grid-template-columns:1fr; gap:12px; }
+ .hn-flow-map { min-width:0; } .hn-flow-source { padding-bottom:20px; } .hn-reading-table { min-width:0; }
+ .hn-projections { gap:10px; } .hn-projection table { font-size:9pt; }
+ .hn-block { break-inside:avoid; } [data-hn-key].hn-selected { outline:none; background:transparent; }
+ button { border:1px solid #555; box-shadow:none!important; } a { color:inherit; text-decoration:none; }
+ details.hn-extra>summary { display:none; } details.hn-extra>*:not(summary) { display:block!important; }
+}
+
+</style>
+</head>
+<body>
+<div class="hn-page">
+<main class="hn-main">
+<header class="hn-header">
+  <p class="hn-eyebrow">离散结构</p>
+  <h1>有向图与可达性</h1>
+  <p class="hn-lead">从边的方向、邻接矩阵到逐步搜索，区分“直接相邻”和“经过若干条边能够到达”。本篇限定有限、无平行边的有向图。</p>
+</header>
+
+<section id="graph-definition">
+<h2>有向图</h2>
+<div class="hn-block">
+ <span class="hn-label">定义</span>
+ <p>有向图记为 <strong>G = (V, E)</strong>。V 是顶点的有限集合；E 是 V × V 的一个子集，元素 (u, v) 表示一条从 u 指向 v 的有向边。边的起点和终点有顺序，(u, v) 与 (v, u) 是不同的边。</p>
+</div>
+<div class="hn-formula">
+ <math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="E 是 V 与 V 的笛卡尔积的子集"><mi>E</mi><mo>⊆</mo><mi>V</mi><mo>×</mo><mi>V</mi></math>
+</div>
+<p>V × V 是所有顶点有序对组成的集合；E 从中选出实际存在的边。该集合模型不区分同一有序对的多条平行边，但可以包含形如 (u, u) 的自环。下面的例子没有自环。</p>
+<p>取 V = {A, B, C, D}，E = {(A, B), (A, C), (B, D)}。这四个字母仅是顶点标识，没有大小、先后或业务含义。</p>
+
+<figure class="hn-figure" data-hn-linked id="representations">
+ <figcaption>图 1　同一有向图的三种表示</figcaption>
+ <p class="hn-small">箭头指向边的终点。选择节点后，矩阵对应的起点行与可达数量同步标记；再次选择可取消。</p>
+ <div class="hn-graph" aria-label="四个顶点，边为 A 到 B、A 到 C、B 到 D">
+  <svg viewBox="0 0 1000 500" preserveAspectRatio="none" role="img" aria-labelledby="structure-title structure-desc">
+   <title id="structure-title">有向图结构</title>
+   <desc id="structure-desc">A 指向 B 和 C；B 指向 D；C 和 D 没有出边。</desc>
+   <defs><marker id="structure-arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="7" markerHeight="7" orient="auto"><path d="M 1 1 L 11 6 L 1 11 Z" fill="var(--hn-muted)"/></marker></defs>
+   <path class="hn-edge" data-hn-edge-from="A" data-hn-edge-to="B" d="M 200 218 L 400 139" marker-end="url(#structure-arrow)"/>
+   <path class="hn-edge" data-hn-edge-from="A" data-hn-edge-to="C" d="M 200 282 L 400 361" marker-end="url(#structure-arrow)"/>
+   <path class="hn-edge" data-hn-edge-from="B" data-hn-edge-to="D" d="M 580 100 L 780 100" marker-end="url(#structure-arrow)"/>
+  </svg>
+  <button class="hn-node hn-node-a" data-hn-select="A" data-hn-key="A" aria-label="选择顶点 A" aria-pressed="false" disabled>A</button>
+  <button class="hn-node hn-node-b" data-hn-select="B" data-hn-key="B" aria-label="选择顶点 B" aria-pressed="false" disabled>B</button>
+  <button class="hn-node hn-node-c" data-hn-select="C" data-hn-key="C" aria-label="选择顶点 C" aria-pressed="false" disabled>C</button>
+  <button class="hn-node hn-node-d" data-hn-select="D" data-hn-key="D" aria-label="选择顶点 D" aria-pressed="false" disabled>D</button>
+ </div>
+ <div class="hn-views">
+  <div class="hn-scroll" tabindex="0" role="region" aria-label="邻接矩阵，行是起点，列是终点">
+   <table class="hn-matrix">
+    <caption>邻接矩阵：行 → 列</caption>
+    <thead><tr><th scope="col">起点＼终点</th><th scope="col">A</th><th scope="col">B</th><th scope="col">C</th><th scope="col">D</th></tr></thead>
+    <tbody>
+     <tr data-hn-key="A"><th scope="row">A</th><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+     <tr data-hn-key="B"><th scope="row">B</th><td>0</td><td>0</td><td>0</td><td>1</td></tr>
+     <tr data-hn-key="C"><th scope="row">C</th><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+     <tr data-hn-key="D"><th scope="row">D</th><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+    </tbody>
+   </table>
+  </div>
+  <div>
+   <p class="hn-small">每个起点的可达顶点数（包括自身）</p>
+   <div class="hn-bars" role="list" aria-label="可达顶点数，条长共同以 4 为满刻度">
+    <div class="hn-bar-row" data-hn-key="A" role="listitem"><strong>A</strong><div class="hn-bar-track" aria-hidden="true"><div class="hn-bar-fill" style="width:100%"></div></div><span>4 个</span></div>
+    <div class="hn-bar-row" data-hn-key="B" role="listitem"><strong>B</strong><div class="hn-bar-track" aria-hidden="true"><div class="hn-bar-fill" style="width:50%"></div></div><span>2 个</span></div>
+    <div class="hn-bar-row" data-hn-key="C" role="listitem"><strong>C</strong><div class="hn-bar-track" aria-hidden="true"><div class="hn-bar-fill" style="width:25%"></div></div><span>1 个</span></div>
+    <div class="hn-bar-row" data-hn-key="D" role="listitem"><strong>D</strong><div class="hn-bar-track" aria-hidden="true"><div class="hn-bar-fill" style="width:25%"></div></div><span>1 个</span></div>
+   </div>
+  </div>
+ </div>
+ <p class="hn-status" data-hn-linked-status aria-live="polite">显示全部对象；选择节点可定位对应表示。</p>
+</figure>
+<p><strong>邻接矩阵</strong>将顶点顺序固定为 A、B、C、D，用行表示起点、列表示终点；位置 (u, v) 为 1 当且仅当 (u, v) ∈ E，否则为 0。因此 A 行 D 列是 0，只说明没有边 A → D，尚不能据此判断能否经过其他顶点到达 D。</p>
+</section>
+
+<section id="reachability">
+<h2>路径与可达性</h2>
+<div class="hn-block">
+ <span class="hn-label">定义</span>
+ <p>本文将顶点序列 v₀, v₁, …, vₖ 称为从 v₀ 到 vₖ 的有向路径，当每一对连续顶点都满足 (vᵢ, vᵢ₊₁) ∈ E。路径长度 k 是经过的边数。这里允许重复顶点；不重复顶点的路径另称简单路径。不同教材可能将允许重复的情况称为“途径”，阅读时须核对这一约定。</p>
+ <p>如果存在从 u 到 v 的有向路径，就称 <strong>v 从 u 可达</strong>。本篇允许长度为 0 的路径：只包含一个顶点，因此每个顶点从自身可达。</p>
+</div>
+<p>在例图中，A → B → D 是长度为 2 的路径，所以 D 从 A 可达；A → C 的长度为 1。C 没有出边，但仍可用长度为 0 的路径到达自身。D 没有出边，不能反向沿 B → D 回到 B。</p>
+<div class="hn-block hn-key">
+ <span class="hn-label">重点</span>
+ <p>直接相邻只考察一条边，可达性考察是否存在一整条路径。邻接矩阵的 0 不等于不可达；有向可达也不要求反向可达。</p>
+</div>
+<div class="hn-scroll" tabindex="0" role="region" aria-label="可达集合及路径见证">
+ <table>
+  <caption>表 1　按长度为 0 的路径也计入的约定</caption>
+  <thead><tr><th scope="col">起点</th><th scope="col">可达集合</th><th scope="col">路径见证</th></tr></thead>
+  <tbody><tr><th scope="row">A</th><td>{A, B, C, D}</td><td>A；A → B；A → C；A → B → D</td></tr><tr><th scope="row">B</th><td>{B, D}</td><td>B；B → D</td></tr><tr><th scope="row">C</th><td>{C}</td><td>C</td></tr><tr><th scope="row">D</th><td>{D}</td><td>D</td></tr></tbody>
+ </table>
+</div>
+<div class="hn-block hn-caution">
+ <span class="hn-label">注意</span>
+ <p>若问题限定路径必须至少含一条边，自身不再自动计入可达集合；只有存在回到自身的有向闭合路径时才计入。比较结果前，应先统一路径长度的约定。图 1 的数量条与表 1 始终采用本篇的零长度约定。</p>
+</div>
+</section>
+
+<section id="search">
+<h2>按队列搜索</h2>
+<p>要找出从给定起点 s 可达的全部顶点，可以沿出边逐步发现新顶点。<strong>广度优先搜索</strong>使用先进先出的队列管理“已经发现、尚未展开”的顶点；发现集合记录已经找到的顶点，避免重复入队。展开一个顶点，是检查它的每一条出边，并将尚未发现的终点加入发现集合和队尾。</p>
+<p>初始化时将 s 加入发现集合和队列；每一步取出队首并展开。当队列为空时停止，此时发现集合就是从 s 可达的顶点集合。顶点应在<strong>入队时</strong>标记为已发现，不能等到出队才标记，否则多个前驱可能让同一顶点重复入队。</p>
+<pre aria-label="队列搜索伪代码">已发现 ← {s}
+队列 ← [s]
+当队列非空：
+    u ← 移出队首
+    按约定顺序检查 u 的每个出边终点 v：
+        若 v 不在已发现中：
+            将 v 加入已发现
+            将 v 加入队尾</pre>
+<p>下面从 A 开始，检查出边时按字母顺序处理终点。“一步”指完整展开一个顶点；初始化单列一帧。队列左端是队首，发现集合没有顺序，展示时按字母排列。</p>
+
+<figure class="hn-figure" id="bfs-example" data-hn-sequence>
+ <figcaption>图 2　从 A 开始的搜索过程</figcaption>
+ <div class="hn-legend"><span><i class="hn-dot" style="color:var(--hn-success)"></i>边框：已发现</span><span><i class="hn-dot" style="color:var(--hn-current)"></i>当前：本步展开</span></div>
+ <div class="hn-interactive-only">
+  <div class="hn-step-track" aria-hidden="true"><span data-bfs-step="0">初始</span><span data-bfs-step="1">展开 A</span><span data-bfs-step="2">展开 B</span><span data-bfs-step="3">展开 C</span><span data-bfs-step="4">展开 D</span></div>
+  <div class="hn-state-grid">
+   <div class="hn-state"><h3>已发现的顶点</h3><div data-bfs-visited><span class="hn-chip hn-discovered">A</span></div></div>
+   <div class="hn-state"><h3>待展开队列（左侧先出）</h3><div data-bfs-queue><span class="hn-chip">A</span></div></div>
+  </div>
+  <p class="hn-status" data-hn-status aria-live="polite">1 / 5 · 初始化：发现 A，将 A 入队。</p>
+  <p data-hn-bind="explanation">尚未展开顶点，队列只包含起点。</p>
+ </div>
+ <div class="hn-controls" data-hn-controls hidden>
+  <button type="button" data-hn-action="prev">上一步</button>
+  <button type="button" data-hn-action="next">下一步</button>
+  <button type="button" data-hn-action="play" aria-pressed="false">播放</button>
+  <button type="button" data-hn-action="reset">重置</button>
+  <label>进度<input type="range" data-hn-range min="0" max="4" value="0" aria-label="搜索步骤"></label>
+ </div>
+ <script type="application/json" data-hn-frames>[
+  {"label":"初始化：发现 A，将 A 入队。","visited":["A"],"queue":["A"],"current":"","explanation":"尚未展开顶点，队列只包含起点。"},
+  {"label":"展开 A：发现 B、C。","visited":["A","B","C"],"queue":["B","C"],"current":"A","explanation":"A 出队，沿 A → B 与 A → C 发现两个新顶点，并按 B、C 顺序入队。"},
+  {"label":"展开 B：发现 D。","visited":["A","B","C","D"],"queue":["C","D"],"current":"B","explanation":"B 出队，沿 B → D 发现 D。C 原先已在队首，D 加入队尾。"},
+  {"label":"展开 C：没有新顶点。","visited":["A","B","C","D"],"queue":["D"],"current":"C","explanation":"C 出队，没有出边。发现集合不变，队列还剩 D。"},
+  {"label":"展开 D：队列为空，搜索结束。","visited":["A","B","C","D"],"queue":[],"current":"D","explanation":"D 出队且没有出边。队列为空，最终可达集合为 {A, B, C, D}。"}
+ ]</script>
+ <div class="hn-static hn-scroll" tabindex="0" role="region" aria-label="完整搜索过程表">
+  <table id="bfs-static-table">
+   <caption>表 2　全部合法步骤（不依赖播放）</caption>
+   <thead><tr><th scope="col">操作</th><th scope="col">新发现</th><th scope="col">发现集合</th><th scope="col">操作后队列</th></tr></thead>
+   <tbody><tr><th scope="row">初始化</th><td>A</td><td>{A}</td><td>[A]</td></tr><tr><th scope="row">展开 A</th><td>B、C</td><td>{A, B, C}</td><td>[B, C]</td></tr><tr><th scope="row">展开 B</th><td>D</td><td>{A, B, C, D}</td><td>[C, D]</td></tr><tr><th scope="row">展开 C</th><td>无</td><td>{A, B, C, D}</td><td>[D]</td></tr><tr><th scope="row">展开 D</th><td>无</td><td>{A, B, C, D}</td><td>[]</td></tr></tbody>
+  </table>
+ </div>
+</figure>
+<div class="hn-block hn-key"><span class="hn-label">重点</span><p>发现集合与队列含义不同。顶点出队以后仍属于发现集合；队列为空表示没有待展开的顶点，并不表示发现集合为空。例子在展开 B 后已发现全部顶点，但仍须处理队列中的 C、D 才按本算法停止。</p></div>
+<details class="hn-extra" open><summary>边界情况</summary><p>起点没有出边时，初始化后只需将起点出队，最终集合只有自身。图中有环时，入队前检查发现集合可以阻止重复入队。改变同层顶点的检查顺序可能改变队列次序，但不会改变最终可达集合。</p></details>
+</section>
+
+<footer class="hn-sources" id="sources"><h2>数据与约定</h2><p>顶点 A、B、C、D 及边集合为构造数据。讨论范围为有限、无平行边的有向图；路径允许重复顶点及长度为 0 的情况。各起点的可达数量均将自身计入，搜索按字母顺序检查出边终点。</p></footer>
+</main>
+<nav class="hn-toc" aria-label="篇内目录"><details open><summary>篇内目录</summary><ol><li><a href="#graph-definition">有向图</a></li><li><a href="#reachability">路径与可达性</a></li><li><a href="#search">按队列搜索</a></li><li><a href="#sources">数据与约定</a></li></ol></details></nav>
+</div>
+
+<script>
+/* Original html-study-notes controls. MIT License. No network or storage. */
+"use strict";
+window.StudyNotes = (() => {
+  const mounted = new WeakMap();
+  function sequence(root) {
+    const data = root.querySelector('[data-hn-frames]');
+    function validate(value) {
+      if (!Array.isArray(value) || !value.length || value.some(f => !f || typeof f.label !== 'string')) {
+        throw new Error('Sequence requires nonempty frames with text labels');
+      }
+      return value;
+    }
+    let frames = validate(JSON.parse(data.textContent));
+    let index = 0, timer = null;
+    const buttons = Object.fromEntries(['prev','next','play','reset'].map(k => [k, root.querySelector(`[data-hn-action="${k}"]`)]));
+    const range = root.querySelector('[data-hn-range]');
+    const status = root.querySelector('[data-hn-status]');
+    const controls = root.querySelector('[data-hn-controls]');
+    const removers = [];
+    const on = (el, type, fn) => { el.addEventListener(type, fn); removers.push(() => el.removeEventListener(type, fn)); };
+    function stop() {
+      if (timer !== null) clearTimeout(timer);
+      timer = null;
+      buttons.play.textContent = '播放';
+      buttons.play.setAttribute('aria-pressed','false');
+    }
+    function render() {
+      range.value = String(index);
+      buttons.prev.disabled = index === 0;
+      buttons.next.disabled = index === frames.length - 1;
+      status.textContent = `${index + 1} / ${frames.length} · ${frames[index].label}`;
+      root.dataset.hnIndex = String(index);
+      root.querySelectorAll('[data-hn-bind]').forEach(el => {
+        const value = frames[index][el.dataset.hnBind];
+        el.textContent = Array.isArray(value) ? (value.join(' → ') || '空') : String(value ?? '');
+      });
+      root.dispatchEvent(new CustomEvent('hn:frame', {bubbles:true, detail:{index, frame:frames[index]}}));
+    }
+    function go(value) {
+      stop();
+      const n = Number(value);
+      index = Number.isFinite(n) ? Math.max(0, Math.min(frames.length - 1, Math.round(n))) : 0;
+      render();
+    }
+    function tick() {
+      if (index < frames.length - 1) { index++; render(); }
+      if (index === frames.length - 1) stop();
+      else timer = setTimeout(tick, 1500);
+    }
+    on(buttons.prev,'click',() => go(index - 1));
+    on(buttons.next,'click',() => go(index + 1));
+    on(buttons.reset,'click',() => go(0));
+    on(range,'input',() => go(range.value));
+    on(buttons.play,'click',() => {
+      if (timer !== null) return stop();
+      if (index === frames.length - 1) { index = 0; render(); }
+      buttons.play.textContent = '暂停';
+      buttons.play.setAttribute('aria-pressed','true');
+      timer = setTimeout(tick, 1500);
+    });
+    on(document,'visibilitychange',() => { if (document.hidden) stop(); });
+    const details = [...root.querySelectorAll('details')];
+    let beforePrint = [];
+    on(window,'beforeprint',() => { stop(); beforePrint = details.map(d => d.open); details.forEach(d => d.open = true); });
+    on(window,'afterprint',() => details.forEach((d,i) => d.open = beforePrint[i] ?? d.open));
+    range.min = '0'; range.max = String(frames.length - 1); range.step = '1';
+    render(); controls.hidden = false;
+    function setFrames(value) {
+      const next = validate(value);
+      stop(); frames = next; index = 0;
+      range.max = String(frames.length - 1);
+      render();
+    }
+    return {go, stop, setFrames, get index(){return index;}, destroy(){stop();removers.forEach(fn=>fn());controls.hidden=true;mounted.delete(root);}};
+  }
+  function linked(root) {
+    const controls = [...root.querySelectorAll('[data-hn-select]')];
+    const status = root.querySelector('[data-hn-linked-status]');
+    const idleMessage = status?.textContent || '显示全部对象；选择对象可定位对应表示。';
+    const selectedMessage = root.dataset.hnSelectedMessage || '当前对象 {key}：相关表示已同步标记。';
+    const select = key => {
+      root.querySelectorAll('[data-hn-key]').forEach(el => el.classList.toggle('hn-selected', !!key && el.dataset.hnKey.split(/\s+/).includes(key)));
+      controls.forEach(el => el.setAttribute('aria-pressed', String(el.dataset.hnSelect === key)));
+      if (status) status.textContent = key ? selectedMessage.replaceAll('{key}',key) : idleMessage;
+      root.dispatchEvent(new CustomEvent('hn:select',{bubbles:true,detail:{key}}));
+    };
+    const handlers = controls.map(el => {
+      el.disabled = false;
+      const fn = () => select(el.getAttribute('aria-pressed') === 'true' ? '' : el.dataset.hnSelect);
+      el.addEventListener('click',fn); return () => {el.removeEventListener('click',fn);el.disabled=true;};
+    });
+    select('');
+    return {select,destroy(){handlers.forEach(fn=>fn());select('');mounted.delete(root);}};
+  }
+  function mount(scope = document) {
+    const result = [];
+    for (const [selector, create] of [['[data-hn-sequence]',sequence],['[data-hn-linked]',linked]]) {
+      const roots = [...scope.querySelectorAll(selector)];
+      if (scope.matches?.(selector)) roots.unshift(scope);
+      for (const root of roots) {
+        if (!mounted.has(root)) {
+          try { mounted.set(root,create(root)); }
+          catch (error) { root.dataset.hnError = 'initialization'; console.error(error); }
+        }
+        if (mounted.has(root)) result.push(mounted.get(root));
+      }
+    }
+    return result;
+  }
+  return {mount};
+})();
+
+</script>
+<script>
+/* Original domain binding for the synthetic graph example. MIT License. */
+(() => {
+  'use strict';
+  const group = document.getElementById('representations');
+  const graph = group.querySelector('.hn-graph');
+  const svg = graph.querySelector('svg');
+  function drawEdges() {
+    const box = graph.getBoundingClientRect();
+    svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
+    group.querySelectorAll('[data-hn-edge-from]').forEach(path => {
+      const from = group.querySelector(`[data-hn-select="${path.dataset.hnEdgeFrom}"]`).getBoundingClientRect();
+      const to = group.querySelector(`[data-hn-select="${path.dataset.hnEdgeTo}"]`).getBoundingClientRect();
+      const a = {x:from.x + from.width/2 - box.x,y:from.y + from.height/2 - box.y};
+      const b = {x:to.x + to.width/2 - box.x,y:to.y + to.height/2 - box.y};
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const length = Math.hypot(dx,dy);
+      const inset = Math.min(30,length/3);
+      path.setAttribute('d', `M ${a.x + dx/length*inset} ${a.y + dy/length*inset} L ${b.x - dx/length*inset} ${b.y - dy/length*inset}`);
+    });
+  }
+  new ResizeObserver(drawEdges).observe(graph);
+  drawEdges();
+  group.addEventListener('hn:select', event => {
+    group.querySelectorAll('[data-hn-edge-from]').forEach(path => path.classList.toggle('hn-selected', path.dataset.hnEdgeFrom === event.detail.key));
+  });
+  const root = document.getElementById('bfs-example');
+  const paintChips = (target, items, current, discovered) => {
+    const previous = new Map([...target.querySelectorAll('[data-chip-key]')].map(el => {
+      el.getAnimations().forEach(animation => animation.cancel());
+      return [el.dataset.chipKey,{element:el,box:el.getBoundingClientRect()}];
+    }));
+    const elements = items.map(key => {
+      const span = previous.get(key)?.element || document.createElement('span');
+      span.dataset.chipKey = key;
+      span.className = 'hn-chip' + (discovered ? ' hn-discovered' : '') + (key === current ? ' hn-current' : '');
+      span.textContent = key === current ? `${key} · 当前` : key;
+      return span;
+    });
+    if (!elements.length) elements.push(document.createTextNode('空'));
+    target.replaceChildren(...elements);
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      for (const element of elements) {
+        if (element.nodeType !== Node.ELEMENT_NODE) continue;
+        const old = previous.get(element.dataset.chipKey)?.box;
+        const now = element.getBoundingClientRect();
+        const dx = old ? old.x - now.x : 0, dy = old ? old.y - now.y : 10;
+        // The domain state is already final; motion only tracks object placement.
+        if (dx || dy) element.animate([
+          {transform:`translate(${dx}px,${dy}px)`,opacity:old ? 1 : .35},
+          {transform:'translate(0,0)',opacity:1},
+        ],{duration:280,easing:'ease-out'});
+      }
+    }
+  };
+  root.addEventListener('hn:frame', event => {
+    const {frame,index} = event.detail;
+    paintChips(root.querySelector('[data-bfs-visited]'),frame.visited,frame.current,true);
+    paintChips(root.querySelector('[data-bfs-queue]'),frame.queue,'',false);
+    root.querySelectorAll('[data-bfs-step]').forEach(el => el.classList.toggle('hn-active',Number(el.dataset.bfsStep) === index));
+  });
+  // Collapse the right-hand contents into the top strip in a narrow pane.
+  const media = window.matchMedia('(max-width:1050px)');
+  const toc = document.querySelector('.hn-toc details');
+  const resize = () => { toc.open = !media.matches; };
+  media.addEventListener('change',resize);
+  resize();
+})();
+
+</script>
+<script>StudyNotes.mount(document);</script>
+</body>
+</html>
