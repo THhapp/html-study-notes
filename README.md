@@ -1,55 +1,49 @@
 # html-study-notes
 
-让 Agent 将课件、手写记录或已有笔记整理成准确、连贯、可独立阅读的单 HTML 学习笔记。
+面向 Agent 的图表、交互与可视化 skill。将指定知识、数据或过程转成静态图、关系联动、可控动画或 HTML 演示。
 
-核心工作包括：剖析原始材料、整理知识与阅读顺序、设计 HTML 表达、编排为阅读友好的笔记。正文提供完整定义、条件和解释，图解呈现结构、对应与变化；例子帮助理解一般知识。
+项目标识沿用 `html-study-notes`，当前显示名称为“图表与交互可视化”。它不再承担完整课程笔记整理、分篇或正文撰写；主任务负责知识主文，本 skill 专注视觉表达。用于 MD 笔记时，普通解释和静态内容可留在 MD，需要定制展示与操作的部分再制作 HTML。
 
-默认采用纯白底色、浅色控件和右侧篇内目录，核心阅读不依赖网络或其他文件。页面直接讲知识，避免制作说明和自评质量的套话。默认约定可按任务调整，不要求特定操作系统或笔记软件。
+## 使用
 
-## 查看与使用
-
-Agent 入口是 [SKILL.md](SKILL.md)。将仓库放在 Agent 可读取的位置，按所用工具的 skill 加载方式使用；也可以直接要求 Agent 阅读入口文件。提供原始材料、输出位置和需要保留的个人记录，例如：
+Agent 入口是 [SKILL.md](SKILL.md)。将项目放在 Agent 能读取的位置，按所用工具的方式加载 skill，或直接要求阅读入口。提供要展示的内容、必要数据和输出位置，例如：
 
 ```text
-请阅读本仓库的 SKILL.md，将所附材料整理成按主题组织的 HTML 学习笔记。
-输出到我指定的目录，原始材料保持不变。保留课堂重点、个人理解与原疑问，
-结合课件补足准确的一般知识，并用合适的图解解释关系与过程。
+使用 $html-study-notes，为这段过程设计图解，让读者看清每一步哪些对象改变、为什么改变。
+根据内容选择静态图或交互演示；主文已另行维护，演示只保留必要说明。
+输出到指定目录，现有材料保持不变。
 ```
 
-可直接打开 [信息副本与投影](assets/reference-note.html) 或 [有向图与可达性](assets/reachability-note.html) 查看示例，无需 Python、服务器或网络。示例使用原创构造数据，可随时更新，具体笔记按当前材料和阅读需要设计。
+可直接打开 [信息副本与投影](assets/reference-note.html) 或 [有向图与可达性](assets/reachability-note.html)，无需开发环境或网络。它们保留早期较完整的 HTML 讲解，当前主要用于参考联动、流向、步骤与静态备用表达；其篇幅、目录和样式不是新成果的模板要求。
 
-## 项目结构
-
-开发资源按职责分开维护，读者交付物仍只有一个 HTML。组件是可选工具，不要求每篇使用所有形式：
+## 按需复用
 
 | 资源 | 用途 |
 | --- | --- |
-| `references/design-system.md` | 阅读层级、定义／重点／注意／疑问等统一编排 |
-| `references/agent-workflow.md` | 材料覆盖、状态建模、分阶段制作与验收 |
-| `references/visualization-patterns.md` | 按知识关系选择图表，避免装饰性互动 |
-| `references/single-file-contract.md` | 离线、自包含、无脚本阅读与打印边界 |
-| `references/components.md` | 示例复用、组件接口与状态约束 |
-| `references/research-notes.md` | 研究来源、采纳理由与核查日期 |
-| `assets/note.css`、`assets/note.js` | 原创基础样式、联动选择和步骤控制器 |
-| `assets/diagrams.js` | 可选的实测曲线连线与对象位置追踪 |
-| `assets/note-shell.html` | 打包用页面骨架 |
-| `examples/` | 完整示例的正文和领域逻辑 |
-| `scripts/` | 可选的标准库打包器与静态检查器 |
+| [视觉设计](references/design-system.md) | 图形层次、布局、颜色、标签与动效 |
+| [制作流程](references/agent-workflow.md) | 从视觉问题建立数据与状态模型，再实现和核对 |
+| [图表模式](references/visualization-patterns.md) | 按关系与变化选择表达形式 |
+| [组件接口](references/components.md) | 联动选择、连线、对象追踪与步骤控制器 |
+| [HTML 交付](references/single-file-contract.md) | 离线、静态备用、打印及现有工具的适用边界 |
+| [研究登记](references/research-notes.md) | 历史设计依据与许可来源 |
+| `assets/note.css`、`assets/note.js`、`assets/diagrams.js` | 可选的样式、控制器与图解实现 |
+| `assets/note-shell.html`、`examples/` | 现有 HTML 示例的骨架、内容与领域逻辑 |
+| `scripts/`、`tests/` | 可选打包器、严格静态检查与现有示例回归 |
 
-## 开发与验证
+可以直接编写 SVG、Mermaid 或 HTML，也可只复用局部实现。现有类名、API 和脚本名为兼容已有成果而保留，不要求每次使用整套工具。
 
-直接编写单 HTML 即可使用本 skill。以下工具用于维护与验证，不是笔记阅读依赖。命令从仓库根目录执行；Python 工具需要 Python 3.10+，仅使用标准库。
+## 维护现有 HTML 示例
 
-重新构建示例：
+以下命令从仓库根目录运行，Python 3.10+ 即可；属于旧示例的制作工具，不是读者依赖：
 
 ```sh
 python scripts/build_note.py --title "信息副本与投影" --content examples/representation-content.html --script assets/diagrams.js --script examples/representation.js --output assets/reference-note.html --overwrite
 python scripts/build_note.py --title "有向图与可达性" --content examples/reachability-content.html --script examples/reachability.js --output assets/reachability-note.html --overwrite
 ```
 
-打包器默认拒绝覆盖已有文件，重建时明确加 `--overwrite`。它只处理可信源码，不提供沙箱或 HTML 消毒。
+打包器只组装可信源码，默认拒绝覆盖。它调用严格静态检查器，只接受自包含、纯篇内链接的 HTML；该工具不适用于独立 SVG、Mermaid 或带合法返回链接的页面。按实际交付目标核查，不为通过旧检查器删除有用内容。
 
-运行静态检查和 Python 回归：
+修改相关工具或示例后，可按需要执行：
 
 ```sh
 python scripts/audit_note.py assets/reference-note.html
@@ -57,19 +51,10 @@ python scripts/audit_note.py assets/reachability-note.html
 python -m unittest discover -s tests -p "test_*.py"
 ```
 
-可选的浏览器回归需要 Node.js、Playwright 及其 Chromium 浏览器。已有兼容环境可直接使用；在没有项目依赖的环境中可先安装测试工具：
+现有浏览器回归是 `tests/representation-check.cjs` 和 `tests/browser-check.cjs`，需要 Playwright 及兼容的 Chromium。`NODE_PATH` 可复用已有模块，`BROWSER_EXECUTABLE` 可指定浏览器，`NOTE_QA_DIR` 可指定证据目录。仅修订指令或文档时，无需重复整套浏览器回归。
 
-```sh
-npm install --no-save --package-lock=false playwright
-npx playwright install chromium
-node tests/representation-check.cjs
-node tests/browser-check.cjs
-```
+静态检查不证明模型和计算正确，浏览器测试也不代表特定宿主的嵌入适配。交付时说明实际核对范围。
 
-`BROWSER_EXECUTABLE` 可指定兼容的 Chromium 浏览器可执行文件；若复用其他目录中的 Playwright，可通过 `NODE_PATH` 提供模块查找路径。截图和报告默认写入系统临时目录，可用 `NOTE_QA_DIR` 指定输出位置。两组浏览器回归分别检查信息副本／投影示例和图论示例的领域数据、交互、布局、离线阅读及打印状态。
+## 许可
 
-静态检查与示例回归只能提供部分证据，不能替代实际材料的知识核对，也不代表完整无障碍评估或特定宿主软件的嵌入适配。具体边界见 [单文件约定](references/single-file-contract.md)。
-
-## 发布与许可
-
-原创代码与文档统一采用 [MIT](LICENSE)。外部参考及未来引入素材的边界见 [来源与许可](THIRD_PARTY_NOTICES.md)。公开包以通用原创示例替代私有课堂材料，不附带课件和个人批注。
+原创代码与文档采用 [MIT](LICENSE)，来源与素材边界见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。公开示例使用原创构造数据，不附私人笔记或课件；工具的 MIT 许可不改变用户材料的权利归属。

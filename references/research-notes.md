@@ -2,6 +2,8 @@
 
 来源核查记录日期：**2026-10-16**。范围包括 Agent 指令、知识表达、交互文章、图表、单文件技术、可访问性及许可。以下区分资料依据与项目取舍，不是网站界面、提示词或图稿的转载；来源与许可可能后续变化，实际引入第三方素材时需重新核对。
 
+本文保留早期完整 HTML 学习笔记的研究背景。当前 skill 已收窄为图表、交互和可视化，正文覆盖与课程整理不再是其职责；当前用法以入口和专题说明为准。本次范围调整未重新联网核查以下历史来源。
+
 ## Agent 怎样稳定完成笔记
 
 | 一手来源 | 相关依据 | 本包的取舍 |
@@ -11,7 +13,7 @@
 | [Anthropic Context Engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) | 高信号上下文、清楚接口及按需获取 | 短入口链接专题规范，按任务加载组件，避免灌入全部源码 |
 | [Anthropic frontend-design skill](https://github.com/anthropics/skills/blob/main/skills/frontend-design/SKILL.md) | 观察公开指令如何要求具体审美决策 | 仅作方法对照，原创撰写笔记专用规则，不复制完整指令；长期可读性优先 |
 
-这些是工程指导，不是“提示词保证学习质量”的实验结论。内容覆盖表、图表小契约和领域状态核对是本项目针对实际问题设计的流程。
+这些是工程指导，不是“提示词保证学习质量”的实验结论。早期内容覆盖流程属于原笔记整理范围；当前仅按图解需要建立数据与状态模型，核对领域结果。
 
 ## 交互文章与图表表达
 
@@ -29,12 +31,12 @@
 | 一手来源 | 技术事实或方法 | 本包决定 |
 | --- | --- | --- |
 | [WHATWG HTML sections](https://html.spec.whatwg.org/multipage/sections.html) | HTML 提供 main、section、nav、标题等文档结构 | 使用语义正文与篇内导航 |
-| [MDN Progressive enhancement](https://developer.mozilla.org/en-US/docs/Glossary/Progressive_Enhancement) | 基础内容先可用，再增强体验 | 关闭脚本仍有核心定义、数据和关键过程 |
+| [MDN Progressive enhancement](https://developer.mozilla.org/en-US/docs/Glossary/Progressive_Enhancement) | 基础内容先可用，再增强体验 | 图解按需要保留静态数据、结果或关键过程，不要求复制完整正文 |
 | [MDN MathML Authoring](https://developer.mozilla.org/en-US/docs/Web/MathML/Guides/Authoring) | 数学结构可直接写入 HTML | 默认原生 MathML 与符号说明，不要求 CDN；复杂排版按任务核验 |
 | [MDN localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) | file: 存储行为无统一保证，也可能受限 | 不依赖持久化；可选保存失败也应可读 |
 | [MDN Printing](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Printing) | 打印媒体样式与事件可调整输出 | 隐藏控制器，保留静态图表和过程，避免只打印当前帧 |
 
-无网络资源、无跨文件跳转是本项目交付约定，不是 HTML 标准的限制。开发阶段拆分维护与最终自包含并不矛盾。默认不打包第三方运行库。
+无网络资源、无跨文件跳转是早期示例与现有严格打包器的约定，不是 HTML 标准的限制，也不再是当前 skill 对所有可视化的要求。独立演示仍默认离线自包含，可按任务添加有效返回或来源链接；开发阶段拆分维护与最终自包含并不矛盾。第三方运行库按实际需要选择。
 
 ## 可访问性与可读性
 

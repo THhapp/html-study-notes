@@ -9,3 +9,4 @@ Thumbs.db
 !.env.example
 /test-results/
 /playwright-report/
+/work/
